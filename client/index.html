@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Chatroom</title>
+    <style>
+        #chatBox {
+            border: 1px solid black;
+            padding: 10px;
+
+            .successConnect {
+                padding: 10px;
+                text-align: center;
+                border-bottom: 3px dashed blue;
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+    <h1>WebSocket Chatroom</h1>
+    <div id="chatBox">
+
+    </div>
+    <input type="text" name="chatInput" placeholder="Type your message...">
+    <button>送出</button>
+    <script>
+        // 建立用戶端的連線
+        const ws = new WebSocket("ws://localhost:8080");
+        const chatBox = document.querySelector("#chatBox");  // 訊息內容放置區
+        const chatInput = document.querySelector("input[name=chatInput]"); // 訊息輸入欄位
+        const btnSend = document.querySelector("button"); // 訊息送出按鈕
+
+        // 當最一開始連接到WebSocket Server時，在chatBox顯示歡迎語
+        ws.addEventListener("open", () => {
+            const successConnectText = `
+            <div class="successConnect">
+                <h1>連線成功!!  歡迎來到聊天室</h1>
+                <img src="good.jpg">
+            </div>
+            `;
+            chatBox.innerHTML = successConnectText;
+        })
+
+        // 當收到訊息時會觸發該事件
+        ws.addEventListener("message", async e => {
+            const newMsg = await e.data.text();
+            let newMsgTemplate = `<div class="newMsg"><h3>${newMsg}</h3></div>`
+            chatBox.innerHTML += newMsgTemplate;
+        });
+
+        // 點擊「送出」按鈕時，執行以下動作
+        btnSend.addEventListener("click", e => {
+            // 抓取輸入內容
+            const msg = chatInput.value;
+            // 判斷如果輸入內容不是空白的，才執行送出
+            if (msg.trim() !== "") {
+                ws.send(msg);
+                // 送出後清空輸入欄位內容
+                chatInput.value = "";
+            }
+        })
+
+        // 在chatInput輸入內容後，按下Enter時時，執行送出動作
+        chatInput.addEventListener("keyup", e => {
+            // 如果按下的是Enter按鈕
+            if (e.key === "Enter") {
+                // 抓取輸入內容
+                const msg = chatInput.value;
+                // 判斷如果輸入內容不是空白的，才執行送出
+                if (msg.trim() !== "") {
+                    ws.send(msg);
+                    // 送出後清空輸入欄位內容
+                    chatInput.value = "";
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
